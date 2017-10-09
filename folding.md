@@ -32,9 +32,11 @@ elem x = foldr go False where
 
 onceDelete :: Eq a => a -> [a] -> [a]
 onceDelete x = fst . foldr go [] where
- go y (s0, s1) = case x == y of
-  False -> (y : s0, y : s1)
-  True -> (s1, y : s1)
+ go y (s0, s1) = (
+  case x == y of
+   False -> y : s0
+   True -> s1,
+  y : s1)
 ```
 
 `elem`は分かりやすい。遅延評価があるので比較回数も`foldr`を使わない定義と同じである。
