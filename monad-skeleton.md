@@ -91,7 +91,12 @@ BindS (BindS (BindS ...(BindS (ReturnS a) fN)... f2) f1) f0
 ```haskell
 data Skeleton f a where
  ReturnS :: a -> Skeleton f a
- BindS :: f x0 -> (x0 -> Skeleton f x1) -> (x1 -> Skeleton f x2) -> (x2 -> Skeleton f x3) -> ... (xN -> Skeleton f a) -> Skeleton f a
+ BindS :: f x0 ->
+  (x0 -> Skeleton f x1) ->
+  (x1 -> Skeleton f x2) ->
+  (x2 -> Skeleton f x3) ->
+  ...
+  (xN -> Skeleton f a) -> Skeleton f a
 ```
 
 `_ -> Skeleton f _`を`Kleisli (Skeleton f)`に変換すると、
@@ -99,20 +104,57 @@ data Skeleton f a where
 ```haskell
 data Skeleton f a where
  ReturnS :: a -> Skeleton f a
- BindS :: f x0 -> Kleisli (Skeleton f) x0 x1 -> Kleisli (Skeleton f) x1 x2 -> Kleisli (Skeleton f) x2 x3 -> ... Kleisli (Skeleton f) xN a -> Skeleton f a
-```
-
-これはCategoryを思い浮かべさせる。
-
-```
-class Category cat where
- (>>>) :: cat a b -> cat b c -> cat a b
+ BindS :: f x0 ->
+  Kleisli (Skeleton f) x0 x1 ->
+  Kleisli (Skeleton f) x1 x2 ->
+  Kleisli (Skeleton f) x2 x3 ->
+  ...
+  Kleisli (Skeleton f) xN a -> Skeleton f a
 ```
 
 この関数の列を表現したい。
 
-```
+```haskell
 data Cat k a b where
  Leaf :: k a b -> Cat k a b
  Tree :: Cat k a b -> Cat k b c -> Cat k a c
 ```
+
+`Cat k a z`型を持つ値は`k a b, k b c, k c d..., k y z`という関数の列を表す。
+
+```haskell
+data Skeleton t a where
+ ReturnS :: a -> Skeleton t a
+ BindS :: t a -> Cat (Kleisli (Skeleton t)) a b -> Skeleton t b
+```
+
+## 実行
+
+抽象表現を実行して実際の計算とすることが出来る。例えば`PutStrLnMonadC`を`putStrLn`に変換したり。
+
+```haskell
+data PutStrLnMonad a where
+ PutStrLnMonadC :: String -> PutStrLnMonad ()
+```
+
+```haskell
+interpret :: Skeleton PutStrLnMonad a -> IO a
+interpret m = case debone m of
+ Return a -> return a
+ PutStrLnMonadC s :>>= k -> putStrLn s >>= interpret . k
+```
+
+`m`という引数が無駄に感じる場合はこのようにすればよい。
+
+```haskell
+{-# LANGUAGE LambdaCase #-}
+
+import Control.Category ((>>>))
+
+interpret :: Skeleton PutStrLnMonad a -> IO a
+interpret = debone >>> \case
+ Return a -> return a
+ PutStrLnMonadC s :>>= k -> putStrLn s >>= interpret . k
+```
+
+前に引数を減らすための`deboneBy`という関数を入れるプルリクエストを送ったけど、それがマージされた後にこれに気が付いてしまった。
