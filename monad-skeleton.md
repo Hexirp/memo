@@ -1,6 +1,6 @@
 # monad-skeleton
 
-monad-skeletonはSkeletonモナド、またはFreerモナドを提供する小さくまとまったライブラリ。
+monad-skeletonはSkeletonモナド、またはFreerモナド、またはOperationalモナドを提供する小さくまとまったライブラリ。
 
 ## Freeモナド
 
@@ -42,3 +42,77 @@ data M a where
 ```
 
 GADTs拡張を使用。非常に簡単なのでFreeモナドではなくSkeletonモナドを使いたい。欠点はGADTsが難しいことぐらいしかないかもしれない。
+複数の関数を持つモナドを表現したいときはFreeモナドと同じようにする。
+
+# 内部実装
+
+実はSkeletonモナドはFreeモナドを基にしている。つまり、概念的にはこうなる。
+
+```haskell
+data Coyoneda f a where
+ CoyonedaC :: f x -> (x -> a) -> Coyoneda f a
+
+newtype Skeleton f a = SkeletonC (Free (Coyoneda f) a)
+```
+
+もちろん本当の内部実装はもっと最適化されていて次のようになる。
+
+```haskell
+data Skeleton t a where
+ ReturnS :: a -> Skeleton t a
+ BindS :: t a -> Cat (Kleisli (Skeleton t)) a b -> Skeleton t b
+```
+
+なぜこうなるのか？まず最初の実装はFreeをラップしているのでSkeletonへ融合させる。
+
+```haskell
+data Coyoneda f a where
+ CoyonedaC :: (x -> a) -> f a -> Coyoneda f a
+
+data Skeleton f a = ReturnS a | BindS (Coyoneda f (Skeleton f a))
+```
+
+CoyonedaをSkeletonに融合させる。
+
+```haskell
+data Skeleton f a where
+ ReturnS :: a -> Skeleton f a
+ BindS :: f x -> (x -> Skeleton f a) -> Skeleton f a
+```
+
+ここで、Skeleton型の値がどのようになるかを考える。`BindS`が積み重なったものになる。
+
+```haskell
+BindS (BindS (BindS ...(BindS (ReturnS a) fN)... f2) f1) f0
+```
+
+ここで値が0個以上の関数と一つの値で構成されていることに注目する。つまり、
+
+```haskell
+data Skeleton f a where
+ ReturnS :: a -> Skeleton f a
+ BindS :: f x0 -> (x0 -> Skeleton f x1) -> (x1 -> Skeleton f x2) -> (x2 -> Skeleton f x3) -> ... (xN -> Skeleton f a) -> Skeleton f a
+```
+
+`_ -> Skeleton f _`を`Kleisli (Skeleton f)`に変換すると、
+
+```haskell
+data Skeleton f a where
+ ReturnS :: a -> Skeleton f a
+ BindS :: f x0 -> Kleisli (Skeleton f) x0 x1 -> Kleisli (Skeleton f) x1 x2 -> Kleisli (Skeleton f) x2 x3 -> ... Kleisli (Skeleton f) xN a -> Skeleton f a
+```
+
+これはCategoryを思い浮かべさせる。
+
+```
+class Category cat where
+ (>>>) :: cat a b -> cat b c -> cat a b
+```
+
+この関数の列を表現したい。
+
+```
+data Cat k a b where
+ Leaf :: k a b -> Cat k a b
+ Tree :: Cat k a b -> Cat k b c -> Cat k a c
+```
