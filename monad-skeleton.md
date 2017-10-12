@@ -21,7 +21,7 @@ data PutStrLnMonad a = PutStrLnMonadC String (() -> a)
 data M a = MC a0 a1 a2 ... aN (r -> a)
 ```
 
-実のところ、fはFunctorであれば何でもよい。例えばfが`Const r`であれば、表現するモナドはEitherモナド...
+実のところ、fはFunctorであれば何でもよい。例えばfが`Const r`であれば、表現するモナドはEitherモナドとなる。
 
 ```haskell
 data M a = MC a0 a1 a2 ... aN (r0 -> a) (r1 -> a)
