@@ -41,3 +41,7 @@ onceDelete x = fst . foldr go [] where
 
 `elem`は分かりやすい。遅延評価があるので比較回数も`foldr`を使わない定義と同じである。
 ちなみに使う関数の力を最小限にすると`any (x ==)`となる。しかし、この`onceDelete`は複雑すぎる。これが最良なのか？
+
+## Beautiful Folding
+
+[folds: Beautiful Folding](https://hackage.haskell.org/package/folds-0.7.4)というパッケージがある。
