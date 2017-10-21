@@ -44,4 +44,8 @@ onceDelete x = fst . foldr go [] where
 
 ## Beautiful Folding
 
-[folds: Beautiful Folding](https://hackage.haskell.org/package/folds-0.7.4)というパッケージがある。
+[folds](https://hackage.haskell.org/package/folds)というパッケージがある。
+
+## Recursion schemes
+
+[recursion-schemes](https://hackage.haskell.org/package/recursion-schemes)というパッケージがある。
