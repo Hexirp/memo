@@ -49,3 +49,4 @@ onceDelete x = fst . foldr go [] where
 ## Recursion schemes
 
 [recursion-schemes](https://hackage.haskell.org/package/recursion-schemes)というパッケージがある。
+普通の畳み込みを一般化するだけではなく、畳み込み途中の情報を記録できるらしい。catamorphism、anamorphism、hylomorphism、histomorphismなど。
