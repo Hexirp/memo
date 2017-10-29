@@ -50,3 +50,11 @@ onceDelete x = fst . foldr go [] where
 
 [recursion-schemes](https://hackage.haskell.org/package/recursion-schemes)というパッケージがある。
 普通の畳み込みを一般化するだけではなく、畳み込み途中の情報を記録できるらしい。catamorphism、anamorphism、hylomorphism、histomorphismなど。
+
+## extensible
+
+recursion-schemesとextensibleを組み合わせると拡張可能な再帰が書ける。
+
+`Fix f -> f (Fix f)`は畳み込みのパターンの基礎となる。ここで、fは`* -> *`のカインドを持つ型の拡張可能な直和とする。extensibleライブラリには`Instruction`という名前で含まれている。
+
+fの拡張としてgがあるとする。つまりある型hが存在して`f ++ h ≡ g`である。この時、fに関する再帰`f a -> a`とhに関する再帰`h a -> a`からgに関する再帰`g a -> a`を構成できる。これは`(a -> c) -> (b -> c) -> Either a b -> c`の一般化である。
