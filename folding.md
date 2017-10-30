@@ -58,3 +58,17 @@ recursion-schemesとextensibleを組み合わせると拡張可能な再帰が�
 `Fix f -> f (Fix f)`は畳み込みのパターンの基礎となる。ここで、fは`* -> *`のカインドを持つ型の拡張可能な直和とする。extensibleライブラリには`Instruction`という名前で含まれている。
 
 fの拡張としてgがあるとする。つまりある型hが存在して`f ++ h ≡ g`である。この時、fに関する再帰`f a -> a`とhに関する再帰`h a -> a`からgに関する再帰`g a -> a`を構成できる。これは`(a -> c) -> (b -> c) -> Either a b -> c`の一般化である。
+
+これが普通の拡張可能な再帰である。しかし、二つの型や三つの型が相互に再帰している場合もある。
+
+aとbという型があり、aの中でaとbが使われていて、bの中でaとbが使われているとする。`a ≡ f a b`となるfと`b ≡ g b a`となるgを取る。
+
+```haskell
+data Fix2 f g = Fix2 (f (Fix2 f g) (Fix2 g f))
+```
+
+これを三つにも拡張する。
+
+```haskell
+data Fix3 f g h = Fix3 (f (Fix3 f g h) (Fix3 g h f) (Fix3 h f g))
+```
