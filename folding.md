@@ -73,4 +73,4 @@ data Fix2 f g = Fix2 (f (Fix2 f g) (Fix2 g f))
 data Fix3 f g h = Fix3 (f (Fix3 f g h) (Fix3 g h f) (Fix3 h f g))
 ```
 
-二つの場合の再帰のタネは`(a -> f a b, b -> g b a)`である。fとgが拡張可能な直和であれば、同様に拡張可能な再帰となる。
+二つの場合の再帰のタネは`(f a b -> a, g b a -> b)`である。fとgが拡張可能な直和であれば、同様に拡張可能な再帰となる。
