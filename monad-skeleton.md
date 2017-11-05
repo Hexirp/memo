@@ -121,6 +121,7 @@ data Cat k a b where
 ```
 
 `Cat k a z`型を持つ値は`k a b, k b c, k c d..., k y z`という関数の列を表す。
+リスト型ではなく木型になっているのはパフォーマンスのためである。
 
 ```haskell
 data Skeleton t a where
