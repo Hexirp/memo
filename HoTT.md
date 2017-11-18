@@ -39,7 +39,7 @@ Inductive S1 : Type :=
 
 Univalence Axiomの意義がちょっとわかったかもしれない。型の型を良い空間にするために必要なものだ。具体的な構成が分かってきたため、HoTTのソースコードを読むことに挑戦。まずはCategoryがどういう風に定義されているのか見る。[theories/Categories/Category/Core.v](https://github.com/HoTT/HoTT/blob/master/theories/Categories/Category/Core.v)にあった。`trunc_morphism : forall s d, IsHSet (morphism s d)`というものがある以外は普通の定義だ。`IsHSet`はHoTT覚書に書いてあって、`IsTrunc`の部分的定義らしい。
 
-```
+```coq
 Class Contr_internal (A : Type) := BuildContr {
   center : A ;
   contr : (forall y : A, center = y)
@@ -57,3 +57,5 @@ Fixpoint IsTrunc_internal (n : trunc_index) (A : Type) : Type :=
 ```
 
 これらがポイントとなる定義。Contrは全ての値がある一つの値に等しいということを表す。ぱっと思いつくのはUnit。`IsHProp`は`IsTrunc -1`であり、`forall x y, Contr (x = y)`。つまり、全ての値が等しく、さらにその等しいということを表す道が一つしかないということを表す。Empty、またはUnitがこれに当てはまる。円盤とかは全ての値が等しい(=全ての点が繋がっている)けど、その道が複数あるので`IsHProp`ではない。`IsHSet`は`forall x y, IsHProp (x = y)`。これは任意の二点の間の道が`IsHProp`である、つまり、ある二つの値があったとき、その間の道が一つだけあるか、ないかということ。これは普通の同値関係が入っている型だ。
+
+つまり、`trunc_morphism : forall s d, IsHSet (morphism s d)`は射が普通の同値関係が入っているものだということを示していることだ。射の同値関係には厄介な問題があって、Coqで普通の圏を定義して関数を射とすると関数外延性が必要になったりする。これに対処するために普通はSetoidというのを使う。しかし、HoTTでは`quotient R`、つまりRを同値関係として割るという高階帰納型がある。これを使えば`Fomalize`という内部に持つ式の正規形が等しいのならば等しいというようなものが作れる。なるほど、HoTTが圏論を展開するのに向いているといわれるわけである。
