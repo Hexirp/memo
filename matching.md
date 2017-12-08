@@ -17,7 +17,7 @@ Inductive sig : nat -> Type :=
 | sig_s : forall n, sig n -> sig (S n).
 ```
 
-こんな感じの型が定義されているとする。この時、`forall n, sig n -> P n`の`sig n`に対してmatchすることだ。これにより、`sig_o`で構築されていることが分かればnがOであることが分かり、`sig_s`で構築されていることが分かればnが何らかの数npを取りS npであることが分かるはずだ。よって`match nsig with sig_o => (* P O *) | sig_s np nsigp => (* P (S n) *)`と書けるはずだ。しかし、普通の`match ... with ... end`ではこれを表せない。このようにする。
+こんな感じの型が定義されているとする。この時、`forall n, sig n -> P n`の`sig n`に対してmatchすることだ。これにより、`sig_o`で構築されていることが分かればnがOであることが分かり、`sig_s`で構築されていることが分かればnが何らかの数npを取りS npであることが分かるはずだ。よって`match nsig with sig_o => (* P O *) | sig_s np nsigp => (* P (S np) *)`と書けるはずだ。しかし、普通の`match ... with ... end`ではこれを表せない。このようにする。
 
 ```coq
 match nsig in sig n' return P n' with
@@ -46,4 +46,4 @@ fun n H nsig => match nsig in sig n' return n = n' -> P n' with
 end (eq_refl n)
 ```
 
-`n = n'`を使ってnとn'が等しいことを保存する仕掛けだ。matchの外部からはn'はnとして見えるので、`eq_refl n`を渡せばよい。これをタクティックとして行ってさらに等式を整理してくれるのが`inversion`コマンドである。
+`n = n'`を使ってnとn'が等しいことを保存する仕掛けだ。`n' = n'`ではない。matchの外部からはn'はnとして見えるので、`eq_refl n`を渡せばよい。これをタクティックとして行ってさらに等式を整理してくれるのが`inversion`コマンドである。
