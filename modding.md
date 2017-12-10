@@ -24,6 +24,12 @@ Javaは何かをするときに書かなければいけない量が多いのでI
 
 ## Gradle
 
-Forgeが生成するサンプルプロジェクトをそのまま使っていても、自分でプロジェクトを作っても、Forgeが新しくなった時にMinecraftのバージョン、Forgeのバージョン、MCPのMappingのバージョンを自分で上げなければならなくなる。その時に[最新のサンプルプロジェクトの設定](https://github.com/MinecraftForge/MinecraftForge/blob/07c4da8f3611266a80f432a81dc1a6f0f3f649ac/mdk/build.gradle)を参考にすることがよい。残念ながら生成される前のソースコードの時点では`@MAPPINGS@`という風になっているが、これはGradleによりビルド時に置き換え処理が行われるものだからソースコードを`MAPPINGS`とかで検索していって辿ればどんなバージョンが代入されるのか分かる。[こんな感じにね。](https://github.com/MinecraftForge/MinecraftForge/blob/083daeb5ed8e01518132c441f68eca88e2d59800/build.gradle#L192)
+Forgeが生成するサンプルプロジェクトをそのまま使っていても、自分でプロジェクトを作っても、Forgeが新しくなった時にMinecraftのバージョン、Forgeのバージョン、MCPのMappingのバージョンを自分で上げなければならなくなる。その時に[最新のサンプルプロジェクトの設定](https://github.com/MinecraftForge/MinecraftForge/blob/07c4da8f3611266a80f432a81dc1a6f0f3f649ac/mdk/build.gradle)を参考にすることがよい。残念ながら生成される前のソースコードの時点では`@MAPPINGS@`という風になっているが、これはGradleによりビルド時に置き換え処理が行われるものだからソースコードを`MAPPINGS`とかで検索していって辿ればどんなバージョンが代入されるのか分かる。[こんな感じに。](https://github.com/MinecraftForge/MinecraftForge/blob/083daeb5ed8e01518132c441f68eca88e2d59800/build.gradle#L192)
 
-## 
+## ModelRegistryEvent
+
+Modelの登録がModelRegistryEventにより発火されるようになったみたいだ。PreInitializationEventの時にModelを登録しようとすると「時々」モデルがおかしくなる。これを知るまでに[苦労](https://github.com/Hexirp/akariki/issues/1)した。
+
+## プリズマリンのフェンス
+
+1.13でフェンスが水を通すようになるとの情報がある。確かに自然だが、気持ち悪い。不思議な力で水を通さないフェンスとしてプリズマリンのフェンスを追加したい。
