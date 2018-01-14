@@ -12,7 +12,7 @@ Haskellは言語拡張により非常に表現力が強く、これを上回る�
 >
 > これが意味するのは、私たちはオブジェクト指向プログラミングに対して軽蔑しながら接するのではなく謙虚に接するべきであることと、コモナドでプログラミングするための適切な糖衣構文を考えだすためにオブジェクト指向プログラミングの視点を借りるべきであることである。
 
-この後にオブジェクト指向プログラミングのような糖衣構文を提案しています。......
+この後にオブジェクト指向プログラミングのようにコモナドを扱う糖衣構文を提案しています。......(解説)
 
 ## 自然変換
 
@@ -55,18 +55,48 @@ main :: IO ()
 main = do
   s <- getLine
   putStrLn $ "You: " ++ s
-  s' <- person $ Echo s
-  putStrLn $ "Obj: " ++ s'
+  s' <- person $ Echo s -- idがいらなくなる
+  putStrLn $ "Obj: " ++ s'
 ```
 
 これは言語内DSLを実現します。
 
 ## objective
 
-[objective: Composable objects - Hackage](http://hackage.haskell.org/package/objective)で実装されているオブジェクトはこの記事の本命です。
+[objective: Composable objects - Hackage](http://hackage.haskell.org/package/objective)で実装されているオブジェクトは以下のように定義された型です。
 
 ```haskell
 data Object f g = Object { runObject :: forall x, f x -> g (x, Object f g) }
 ```
 
-自然変換でもIOを対象にする代わりにStateT s IOを対象にすれば状態を扱うことが出来ますが、そうしたものは状態と自然変換を別々に扱わないといけなくなります。このライブラリのオブジェクトは一言でいうと状態を持った自然変換で、上のように定義されています。
+自然変換でもIOを対象にする代わりにStateT s IOを対象にすれば状態を扱うことが出来ますが、そうしたものは状態と自然変換を別々に扱わないといけなくなります。このライブラリのオブジェクトは一言でいうと状態を持った自然変換で、状態とまとめて値であるかのように扱うことが出来ます。解説は他の場所に譲ります。
+
+* 作者(fumieval氏)の説明([2015-Haskell-object.pdf](http://fumieval.github.io/papers/ja/2015-Haskell-objects.pdf))
+* ちゅーん氏の説明([Haskellオブジェクト指向に触れてみよう～初級編～ - Creatable a => a -> IO a](http://tune.hateblo.jp/entry/2015/03/27/035648))
+
+## コモナドと自然変換
+
+現在、オブジェクト指向をHaskellでやるには大きく分けてコモナドと自然変換の二つの手法があります。実は、この二つの手法は互いに関連しあっています。
+
+```haskell
+import Control.Comonad
+import Control.Object -- objective
+
+data Obj f g a = Obj (Object f g) a
+
+instance Functor (Obj f g) where
+  fmap f (Obj o x) = Obj o (f x)
+
+instance Comonad (Obj f g) where
+  extract (Obj _ x) = x
+  
+  extend f (Obj o x) = Obj o (f (Obj o x))
+```
+
+このコモナドは次のような自然変換を作ります。圏論的にオブジェクトを扱うのならばこの式が重要かもしれないと思います。
+
+```haskell
+-- Obj f g ∘ f ~> g ∘ Obj f g
+call :: Functor g => Obj f g (f a) -> g (Obj f g a)
+call (Obj o x) = fmap Obj (runObject o x)
+```
