@@ -2,26 +2,6 @@
 
 Haskellは言語拡張によって非常に型の表現力が強い。その表現力と同程度、および上回る表現力を持つ言語はScalaやCoqなど少数しか存在しない。その表現力によって、JavaやJavaScriptなどのオブジェクトをHaskell内で表現することが出来る。方法は複数あるので知っている限り紹介する。
 
-## コモナド
-
-[Haskell for all: Comonads are objects](http://www.haskellforall.com/2013/02/you-could-have-invented-comonads.html)という力強い(?)タイトルの記事で紹介されている。この記事は、有名なデザインパターンのBuilder、Iterator、Commandパターンがそれぞれコモナドで表現できることを示した後に、このように議論する。
-
-> Every time we try to implement object-oriented programming in Haskell we gravitate, inexorably, to modeling objects as comonads.
-> This suggests that object-oriented programming and comonadic programming are one and the same.
-> Haskell programmers have struggled with comonads because we so militantly rejected object-oriented programming.
->
-> This means we should approach object oriented programming with humility instead of disdain and borrow object-oriented insight to devise a suitable syntactic sugar for programming with comonads.
-
-拙訳するとこんな感じだと思われるが、英語は上手ではないので間違いがあるかもしれない。
-
-> オブジェクト指向プログラミングの概念をHaskellで実装しようとすると常に、私たちは不可避かつ自然にオブジェクトをコモナドとして模擬することになる。
-> それは、コモナドを使ったプログラミングはオブジェクト指向プログラミングと同じものであることを示唆している。
-> Haskellerがコモナドに苦しめられてきたのは、Haskellerがオブジェクトを使ったプログラミングを激しく拒絶しているからである。
->
-> これが意味するのは、私たちはオブジェクト指向プログラミングに対して軽蔑しながら接するのではなく謙虚に接するべきであることと、コモナドでプログラミングするための適切な糖衣構文を考えだすためにオブジェクト指向プログラミングの視点を借りるべきであることである。
-
-この後にオブジェクト指向プログラミングのようにコモナドを扱う糖衣構文を提案している。それは別の話になるので個別で見てもらうとして、この記事では一部の例しか挙げていない。[Bloggy Badger: Comonad are neighbourhoods, not objects](http://gelisam.blogspot.jp/2013/07/comonads-are-neighbourhoods-not-objects.html)というこの記事を否定する記事も存在している。
-
 ## 自然変換
 
 [Control.Object - Hackage](https://hackage.haskell.org/package/natural-transformation-0.4/docs/Control-Object.html)で実装されているように、ある関手fから関手IOへの自然変換は作用をもたらすことが出来るオブジェクトとして見ることが出来る。例を出して説明する。
@@ -123,41 +103,13 @@ data Object f g = Object { runObject :: forall x, f x -> g (x, Object f g) }
 
 ## 余談
 
-コモナドと自然変換の二つの手法は互いに関連しあっている気がしている。
+この手法はEtaのJavaモナドみたいなラッパーをかぶせることが出来る。
 
 ```haskell
-import Control.Comonad
-import Control.Object -- objective
+import Control.Object -- from objective
 
-newtype Obj f g a = Obj { unObj :: (a, Object f g) }
+type Obj f g a = StateT (Object f g) g a
 
-instance Functor (Obj f g) where
-  fmap f (Obj (x, o)) = Obj (f, o)
-
-instance Comonad (Obj f g) where
-  extract (Obj (x, _)) = x
-  
-  extend f (Obj (x, o)) = Obj (f (Obj (x, o)), o)
+call :: f a -> Obj f g a
+call x = StateT $ \o -> runObject o x
 ```
-
-このコモナドは次のような自然変換を持つ。圏論的にオブジェクトを扱うのならばこの式が重要かもしれない。
-
-```haskell
--- Obj f g ∘ f ~> g ∘ Obj f g
-call :: Functor g => Obj f g (f a) -> g (Obj f g a)
-call (Obj (x, o)) = fmap Obj (runObject o x)
-```
-
-これを一般化してこんなクラスを作ったりしてもいいかもしれない。
-
-```haskell
-{-# LANGUAGE TypeFamilies　#-}
-
-class Object w where
-  type Source w :: * -> *
-  type Target w :: * -> *
-  
-  call :: w (Source w a) -> Target w (w a)
-```
-
-ここまで妄想に付き合ってくれてありがとう。
