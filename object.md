@@ -1,6 +1,6 @@
 # Haskellでオブジェクト指向
 
-Haskellは、言語拡張によって非常に型の表現力が強い。その表現力と同程度、および上回る表現力を持つ言語はScalaやCoqなど少数しか存在しない。その表現力によって、JavaやJavaScriptなどのオブジェクトをHaskell内で表現することが出来る。方法は複数あるので知っている限り紹介する。
+Haskellは言語拡張によって非常に型の表現力が強い。その表現力と同程度、および上回る表現力を持つ言語はScalaやCoqなど少数しか存在しない。その表現力によって、JavaやJavaScriptなどのオブジェクトをHaskell内で表現することが出来る。方法は複数あるので知っている限り紹介する。
 
 ## コモナド
 
@@ -82,7 +82,7 @@ main = flip evalStateT 0 $ do
   lift $ putStrLn $ "Now: " ++ show s1
 ```
 
-ただし、これはオブジェクトたる自然変換と状態が別々に扱われるので、オブジェクトを別のところで使おうとしても状態は引き継がれないという弱点がある。
+ただし、これはオブジェクトたる自然変換と状態が別々に扱われるので、オブジェクトを別のところで使おうとしても状態は引き継がれず、隠蔽することもできないという弱点がある。
 
 ## objective
 
@@ -96,6 +96,10 @@ data Object f g = Object { runObject :: forall x, f x -> g (x, Object f g) }
 
 * 作者(fumieval氏)の説明([2015-Haskell-object.pdf](http://fumieval.github.io/papers/ja/2015-Haskell-objects.pdf))
 * ちゅーん氏の説明([Haskellオブジェクト指向に触れてみよう～初級編～ - Creatable a => a -> IO a](http://tune.hateblo.jp/entry/2015/03/27/035648))
+
+## まとめ
+
+最近、[Eta](http://eta-lang.org/)が話題になっているのでHaskellでオブジェクト指向をしてみた。ゲーム制作の際に有用らしいのでいつか使ってみたい。
 
 ## 余談
 
