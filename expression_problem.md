@@ -1,23 +1,55 @@
 # Expression Problem
 
-静的型付き言語において、ある型に含まれる新しいデータの追加と、ある型に対する新しい操作の追加が、両立するような抽象化は困難である。
-即ち、以下の二つの項目を、既存のコードを変更することなく、型の安全性を保ったまま実現することは難しいと考えられている。
+Expression Problemについて調べたことなど。
 
-* データの拡張性: 既存の型に含まれる新しいデータを追加できる。
-* 操作の拡張性: 既存の型に対する新しい操作を追加できる。
+## 導入
 
-さらに、以下の項目を加える。
+あるまとまりがあるとしよう。そうだな、人型(`Hitogata`)とでもしよう。当然、人間(`Ningen`)はそれに含まれるだろう。死体(`Shitai`)もだ。
+これを静的に表現しようと思う。様々な表現方法がある。
 
-* 振る舞いの動的性: 操作により、あるデータが他のデータになり得る。
-
-## Haskell
-
-Haskellでは、`data`を使って新しい型を定義するとき、それは代数的データ型である。
+### 代数的データ型
 
 ```haskell
-data Human = Living Age | Dead
+data Hitogata = Ningen | Shitai
 ```
 
-この時、Humanは型である。
-Age型を持つ全ての値nに対して、Living nはHumanに含まれている。
-DeadはHumanに含まれている。
+```scala
+sealed trait Hitogata {}
+
+case class Ningen {} extends Hitogata
+
+case class Shitai {} extends Hitogata
+```
+
+### クラス (クラスベースオブジェクト指向)
+
+```scala
+class Hitogata {}
+
+class Ningen {} extends Hitogata
+
+class Shitai {} extends Hitogata
+```
+
+### 型クラス
+
+```haskell
+class Hitogata t where {}
+
+data Ningen = MkNingen
+data Shitai = MkShitai
+
+instance Hitogata Ningen where {}
+instance Hitogata Shitai where {}
+```
+
+```scala
+trait Hitogata[A] {}
+
+class Ningen {}
+class Shitai {}
+
+implicit val hitogataNingen = new Hitogata[Ningen] {}
+implicit val hitogataShitai = new Hitogata[Shitai] {}
+```
+
