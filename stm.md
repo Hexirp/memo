@@ -79,7 +79,7 @@ modifyIORef' ref f
 >
 > 一般的に、`evaluate`は評価が遅延された値に含まれる例外を調べ、（たぶん）その後に対応するため使われる。
 >
-> `evaluate`が評価するのはWHNFまででありそれ以上評価はしない。もっと深く評価したいのであれば、`Control.DeepSeq`の`force`関数が有用である：`haskellevaluate $ force x`
+> `evaluate`が評価するのはWHNFまででありそれ以上評価はしない。もっと深く評価したいのであれば、`Control.DeepSeq`の`force`関数が有用である：`evaluate $ force x`
 >
 > `evaluate x`と`return $! x`の間には微妙な違いがあり、それは`throwIO`と`throw`の違いに似る。遅延された値xが例外を投げるとき、`return $! x`はIOアクションを返すことが出来ず例外が投げられる。一方で、`evaluate x`は常にIOアクションを行う；そのアクションは、評価の際にxが例外を投げるそのときだけ、*実行*時に例外を投げる。
 > 実践上でこの違いは、*不正確な*例外の意味論により`(return $! error "foo") >> error "bar"`はコンパイラにより行われる最適化に依存して"foo"か"bar"のどちらかを投げえるのに対して、`evaluate (error "foo") >> error "bar"`は投げることが保証されている、という形で現れる。
