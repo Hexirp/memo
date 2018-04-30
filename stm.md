@@ -41,7 +41,7 @@ unIO (IO m) = m
 IO m >>= k = IO (\ s -> case m s of (# new_s, a #) -> unIO (k a) new_s)
 ```
 
-これらが大体の実装である。そして、`modifyIORef'`の実装は以下の通りである。
+これらが大体の前提実装である。そして、`modifyIORef'`の実装は以下の通りである。
 
 ```haskell
 foo ref f = do
@@ -59,18 +59,22 @@ modifyIORef' = do
 
 ```haskell
 foo ref f
+
 = readIORef ref >>= (\a -> evaluate (f a) >>= (\a' -> writeIORef ref a'))
 
 = IO (\s -> case unIO (readIORef ref) s of (# s', a #) -> unIO (evaluate (f a) >>= (\a' -> writeIORef ref a')) s')
 
-= IO (\s -> case unIO (readIORef ref) s of (# s', a #) -> unIO (
-        \s' -> case unIO (evaluate (f a)) s' of (# s'', a' #) -> unIO (writeIORef ref a') s''))
+= IO (\s -> case unIO (readIORef ref) s of (# s', a #) ->
+        case unIO (evaluate (f a)) s' of (# s'', a' #) -> unIO (writeIORef ref a') s'')
 
-= IO (\s -> case unIO (readIORef ref) s of (# s', a #) -> unIO (
-        \s' -> case unIO (IO (\_s -> seq# (f a) _s)) s' of (# s'', a' #) -> unIO (writeIORef ref a') s''))
+= IO (\s -> case unIO (readIORef ref) s of (# s', a #) ->
+        case unIO (evaluate (f a)) s' of (# s'', a' #) -> unIO (writeIORef ref a') s'')
 
-= IO (\s -> case unIO (readIORef ref) s of (# s', a #) -> unIO (
-        \s' -> seq# (f a) s' of (# s'', a' #) -> unIO (writeIORef ref a') s''))
+= IO (\s -> case unIO (readIORef ref) s of (# s', a #) ->
+        case unIO (IO (\_s -> seq# (f a) _s)) s' of (# s'', a' #) -> unIO (writeIORef ref a') s'')
+
+= IO (\s -> case unIO (readIORef ref) s of (# s', a #) ->
+        seq# (f a) s' of (# s'', a' #) -> unIO (writeIORef ref a') s'')
 
 
 modifyIORef' ref f
@@ -84,12 +88,12 @@ modifyIORef' ref f
 
 > 引数をWHNFへ評価する。
 >
-> 一般的に、`evaluate`は評価が遅延された値に含まれる例外を調べ、（たぶん）その後に対応するため使われる。
+> 一般的に、`evaluate`は評価が遅延された値に含まれる例外を調べ、（おそらく）その後に対応するため使われる。
 >
-> `evaluate`が評価するのはWHNFまででありそれ以上評価はしない。もっと深く評価したいのであれば、`Control.DeepSeq`の`force`関数が有用である：`evaluate $ force x`
+> `evaluate`が評価するのはWHNFまでである。もっと深く評価したいのであれば、`Control.DeepSeq`の`force`関数が有用である：`evaluate $ force x`
 >
 > `evaluate x`と`return $! x`の間には微妙な違いがあり、それは`throwIO`と`throw`の違いに似る。遅延された値xが例外を投げるとき、`return $! x`はIOアクションを返すことが出来ず例外が投げられる。一方で、`evaluate x`は常にIOアクションを行う；そのアクションは、評価の際にxが例外を投げるそのときだけ、*実行*時に例外を投げる。
-> 実践上でこの違いは、*不正確な*例外の意味論により`(return $! error "foo") >> error "bar"`はコンパイラにより行われる最適化に依存して"foo"か"bar"のどちらかを投げえるのに対して、`evaluate (error "foo") >> error "bar"`は"foo"を投げることが保証されている、という形で現れる。
+> 実践上においてこの違いは、`(return $! error "foo") >> error "bar"`は*不正確な*例外の意味論のためにコンパイラにより行われる最適化に依存して"foo"か"bar"のどちらかを投げうるのに対して、`evaluate (error "foo") >> error "bar"`は"foo"を投げることが保証されている、という形で現れる。
 > 経験則からいって、よいのは`evaluate`を遅延された値の例外を強制するか処理したい時に使うことである。一方、もし効率のために遅延された値の評価をしたくて例外を気にしないのならば、`return $! x`を使用することが出来る。
 
 ゆえに、例外を考えるのならば`evaluate`を使うのが安全ということである。STMモナドでも以下のようにして実装できるはずである。これを使うべきであろうか？
