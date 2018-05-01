@@ -8,9 +8,9 @@ IORefについてのメモ。
 
 ```haskell
 updateIORef ref f = do
- a  <- readIORef ref
- a' <- evaluate (f a)
- writeIORef ref a'
+  a  <- readIORef ref
+  a' <- evaluate (f a)
+  writeIORef ref a'
 ```
 
 この関数の意味は、refの参照先へ正格にfを適用することである。`modifyIORef'`でいいんじゃと思われるかもしれないが、厳密には違う！
@@ -33,14 +33,14 @@ seq# = seq# -- プリミティブ
 
 ```haskell
 updateIORef ref f = do
- a  <- readIORef ref
- a' <- evaluate (f a)
- writeIORef ref a'
+  a  <- readIORef ref
+  a' <- evaluate (f a)
+  writeIORef ref a'
 
 modifyIORef' :: IORef a -> (a -> a) -> IO ()
 modifyIORef' = do
-    x <- readIORef ref
-    writeIORef ref $! f x
+  x <- readIORef ref
+  writeIORef ref $! f x
 ```
 
 ここで重要なのは、適用後の結果を正確に評価するために使われる二つの関数、`evaluate`と`($!)`の違いである。これを理解するに`evaluate`のドキュメントにあるこのような記述である。
