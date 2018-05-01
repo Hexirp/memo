@@ -8,95 +8,9 @@ newtype IO a = IO (State# RealWorld -> (# State# RealWorld, a #))
 newtype STM a = STM (State# RealWorld -> (# State# RealWorld, a #))
 ```
 
-## evaluate
+## 正格に更新する
 
-STM上でのevaluateが欲しくなった。IORefでの以下のようなコードが書きたい。
-
-```haskell
-foo ref f = do
- a  <- readIORef ref
- a' <- evaluate (f a)
- writeIORef ref a'
-```
-
-これは`modifyIORef'`でいいんじゃと思われるかもしれないが、厳密にはことなる。
-
-```haskell
-evaluate :: a -> IO a
-evaluate a = IO (\s -> seq# a s)
-
-($!) :: (a -> b) -> a -> b
-f $! a = seq a (f a)
-
-seq :: a -> b -> b
-seq = seq
-
-seq# :: a -> State# s -> (# State# s, a #)
-seq# = seq#
-
-unIO :: IO a -> State# RealWorld -> (# State# RealWorld, a #)
-unIO (IO m) = m
-
-(>>=) :: IO a -> (a -> IO b) -> IO b
-IO m >>= k = IO (\ s -> case m s of (# new_s, a #) -> unIO (k a) new_s)
-```
-
-これらが大体の前提実装である。そして、`modifyIORef'`の実装は以下の通りである。
-
-```haskell
-foo ref f = do
- a  <- readIORef ref
- a' <- evaluate (f a)
- writeIORef ref a'
-
-modifyIORef' :: IORef a -> (a -> a) -> IO ()
-modifyIORef' = do
-    x <- readIORef ref
-    writeIORef ref $! f x
-```
-
-展開をしていく。
-
-```haskell
-foo ref f
-
-= readIORef ref >>= (\a -> evaluate (f a) >>= (\a' -> writeIORef ref a'))
-
-= IO (\s -> case unIO (readIORef ref) s of (# s', a #) -> unIO (evaluate (f a) >>= (\a' -> writeIORef ref a')) s')
-
-= IO (\s -> case unIO (readIORef ref) s of (# s', a #) ->
-        case unIO (evaluate (f a)) s' of (# s'', a' #) -> unIO (writeIORef ref a') s'')
-
-= IO (\s -> case unIO (readIORef ref) s of (# s', a #) ->
-        case unIO (evaluate (f a)) s' of (# s'', a' #) -> unIO (writeIORef ref a') s'')
-
-= IO (\s -> case unIO (readIORef ref) s of (# s', a #) ->
-        case unIO (IO (\_s -> seq# (f a) _s)) s' of (# s'', a' #) -> unIO (writeIORef ref a') s'')
-
-= IO (\s -> case unIO (readIORef ref) s of (# s', a #) ->
-        seq# (f a) s' of (# s'', a' #) -> unIO (writeIORef ref a') s'')
-
-
-modifyIORef' ref f
-
-= readIORef ref >>= (\x -> writeIORef ref $! f x)
-
-= IO (\s -> case unIO (readIORef ref) s of (# s', x #) -> unIO (writeIORef ref $! f x) s')
-```
-
-ここで重要なのは、`evaluate`のドキュメントにあるこのような記述である。
-
-> 引数をWHNFへ評価する。
->
-> 一般的に、`evaluate`は評価が遅延された値に含まれる例外を調べ、（おそらく）その後に対応するため使われる。
->
-> `evaluate`が評価するのはWHNFまでである。もっと深く評価したいのであれば、`Control.DeepSeq`の`force`関数が有用である：`evaluate $ force x`
->
-> `evaluate x`と`return $! x`の間には微妙な違いがあり、それは`throwIO`と`throw`の違いに似る。遅延された値xが例外を投げるとき、`return $! x`はIOアクションを返すことが出来ず例外が投げられる。一方で、`evaluate x`は常にIOアクションを行う；そのアクションは、評価の際にxが例外を投げるそのときだけ、*実行*時に例外を投げる。
-> 実践上においてこの違いは、`(return $! error "foo") >> error "bar"`は*不正確な*例外の意味論のためにコンパイラにより行われる最適化に依存して"foo"か"bar"のどちらかを投げうるのに対して、`evaluate (error "foo") >> error "bar"`は"foo"を投げることが保証されている、という形で現れる。
-> 経験則からいって、よいのは`evaluate`を遅延された値の例外を強制するか処理したい時に使うことである。一方、もし効率のために遅延された値の評価をしたくて例外を気にしないのならば、`return $! x`を使用することが出来る。
-
-ゆえに、例外を考えるのならば`evaluate`を使うのが安全ということである。STMモナドでも以下のようにして実装できるはずである。これを使うべきであろうか？
+[IORef](IORef.md)の「正格に更新する」の章でみたように`evaluate`は例外処理においてメリットを持つ。しかし、残念ながらそれはIOモナド専用である．．．即ち、STMモナドの上で更新を行うTVarとは馴染まない。だが、しかし、簡単にSTM上でのevaluateが実装できる！
 
 ```haskell
 evaluateSTM :: a -> STM a
