@@ -7,6 +7,7 @@ IORefについてのメモ。
 以下のような関数は有用であろうか？`evaluate :: a -> IO a`は引数を強制的に評価する関数だ。
 
 ```haskell
+updateIORef :: IORef a -> (a -> a) -> IO ()
 updateIORef ref f = do
   a  <- readIORef ref
   a' <- evaluate (f a)
@@ -32,6 +33,7 @@ seq# = seq# -- プリミティブ
 これらが大体の中身である。そして、`modifyIORef'`の実装は以下の通りである。
 
 ```haskell
+updateIORef :: IORef a -> (a -> a) -> IO ()
 updateIORef ref f = do
   a  <- readIORef ref
   a' <- evaluate (f a)
