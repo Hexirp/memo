@@ -10,9 +10,9 @@ newtype IO a = IO (State# RealWorld -> (# State# RealWorld, a #))
 newtype STM a = STM (State# RealWorld -> (# State# RealWorld, a #))
 ```
 
-## 正格に更新する
+## evaluate
 
-[IORef](IORef.md)の「正格に更新する」の章でみたように`evaluate`は例外処理においてメリットを持つ。しかし、残念ながらそれはIOモナド専用である．．．即ち、STMモナドの上で更新を行うTVarとは馴染まない。だが、しかし、簡単にSTM上でのevaluateが実装できる！
+`evaluate`は例外処理においてメリットを持つ。しかし、残念ながらそれはIOモナド専用である……即ち、STMモナドの上で更新を行うTVarとは馴染まない。だが、しかし、簡単にSTM上でのevaluateが実装できる！
 
 ```haskell
 evaluateSTM :: a -> STM a
