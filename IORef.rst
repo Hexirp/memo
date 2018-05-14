@@ -48,7 +48,7 @@ IORefについての知識や疑問をここに書く。
 
   modfiIORef' :: IORef a -> (a -> a) -> IO ()
   modfiIORef' = do
-    a  <- readIORef ref
+    a <- readIORef ref
     writeIORef ref $ f a
 
 ここで重要なのは、適用後の結果を正格に評価するために使われる二つの関数、 ``evaluate`` と ``($!)`` の違いである。これは ``evaluate`` のドキュメントに記述されている。
