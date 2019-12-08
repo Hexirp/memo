@@ -355,7 +355,7 @@ usingFile = argument str (metavar "FILE")
 
 optparse-applicative の節で書いたことを使えば簡単です。
 
-```
+```haskell
 module Main where
 
   import Prelude
