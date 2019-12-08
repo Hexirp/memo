@@ -119,7 +119,7 @@ foo v0.1.0.0 [1,2] 3 --help --version
 
 optparse-applicative は "optparse" から分かる通りオプションのパーサーを提供しています。が、その後に "applicative" が付いていますね。 Applicative 型クラスを使って何かクールなことをやっていることです。
 
-どんなクールなことなのでしょうか、 README を読んでみます。
+どんなクールなことなのでしょうか、 README を読んでみます。ここからは、 Hackage にある README を元にした話なので、細かい情報を知りたい場合は元々のものを読むことをお勧めします。
 
 ```haskell
 data Parser a
@@ -238,3 +238,68 @@ sample = Sample
          <> metavar "INT" )
 ```
 
+`strOption`, `switch`, `option auto` は共通する形式の設定を受け取っています。その設定はモノイドになっています。ここの詳細も後程紹介します。
+
+これでパーサーの作り方は大体理解できました。次は、パーサーの実行方法です。
+
+```haskell
+main :: IO ()
+main = greet =<< execParser opts
+  where
+    opts = info (sample <**> helper)
+      ( fullDesc
+     <> progDesc "Print a greeting for TARGET"
+     <> header "hello - a test for optparse-applicative" )
+
+greet :: Sample -> IO ()
+greet (Sample h False n) = putStrLn $ "Hello, " ++ h ++ replicate n '!'
+greet _ = return ()
+```
+
+今回もまた知らない関数がたくさん出てきて目が滑ってしまいました。
+
+```haskell
+main :: IO ()
+main = greet =<< execParser opts
+  where
+    opts = undefined
+
+greet :: Sample -> IO ()
+greet (Sample h False n) = putStrLn $ "Hello, " ++ h ++ replicate n '!'
+greet _ = return ()
+```
+
+`opts` の部分はいったん置いておきましょう。すると、パーサーを実行した結果を bind で実際の処理を行う関数 `greet` で渡すという普通の処理になりますね。
+
+```haskell
+main :: IO ()
+main = greet =<< execParser opts
+  where
+    opts = info (sample <**> helper)
+      ( fullDesc
+     <> progDesc "Print a greeting for TARGET"
+     <> header "hello - a test for optparse-applicative" )
+
+greet :: Sample -> IO ()
+greet (Sample h False n) = putStrLn $ "Hello, " ++ h ++ replicate n '!'
+greet _ = return ()
+```
+
+こｎ `info` だとか `(<**>)` だとかよく分からない関数が出てくる箇所は、 `--help` をオプションとして渡されたらヘルプを出力できるようにする部分だと説明されています。とにかく、 `sample` をこう包んで、 `progDesc` や `header` などのヘルプに表示するためのメッセージを適切に置き換えれば良さそうです。
+
+```
+    hello - a test for optparse-applicative
+
+    Usage: hello --hello TARGET [-q|--quiet] [--enthusiasm INT]
+      Print a greeting for TARGET
+
+    Available options:
+      --hello TARGET           Target for the greeting
+      -q,--quiet               Whether to be quiet
+      --enthusiasm INT         How enthusiastically to greet (default: 1)
+      -h,--help                Show this help text
+```
+
+ヘルプはこんな感じに表示されると書かれています。ここで、これまでの例で `help` とか `metavar` とか `progDesc` とか `header` とかで設定した文字列がどこに表示されているのか見てみてください。
+
+### optparse-applicative の builder
