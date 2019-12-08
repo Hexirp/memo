@@ -427,3 +427,7 @@ module Main where
 ## 参考文献
 
 * [optparse-applicative/README.md at master · pcapriotti/optparse-applicative](https://github.com/pcapriotti/optparse-applicative/blob/b861da1e6b021d6abd75ff7e9a4277939aa7a541/README.md)
+
+## この記事のライセンス
+
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/legalcode.ja) でライセンスします。
