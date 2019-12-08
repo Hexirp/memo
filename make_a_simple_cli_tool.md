@@ -121,7 +121,7 @@ optparse-applicative は "optparse" から分かる通りオプションのパ�
 
 どんなクールなことなのでしょうか、 README を読んでみます。
 
-```
+```haskell
 data Parser a
 
 instance Functor Parser
@@ -131,9 +131,8 @@ instance Alternative Parser
 
 この `Parser` が核となる型だそうです。これはモナドでは**ありません**。
 
-```
+```haskell
 import Options.Applicative
-import Data.Semigroup ((<>))
 
 data Sample = Sample
   { hello      :: String
@@ -158,4 +157,84 @@ sample = Sample
          <> metavar "INT" )
 ```
 
-これが簡単な例だそうです。いきなりずらっと出されてもわかりませんよね。
+これが簡単な例として紹介されています。知らない関数がたくさん出てくるプログラムをいきなりずらっと並べられると、私は読めなくなってしまいます。なので、分解してみましょう。
+
+```haskell
+import Options.Applicative
+
+data Sample = Sample
+  { hello      :: String
+  , quiet      :: Bool
+  , enthusiasm :: Int }
+
+sample :: Parser Sample
+sample = undefined
+```
+
+最初の部分は普通ですね。 `Options.Applicative` だけをインポートすればよいこと、 `Sample` 型としてパースするには `Parser Sample` という型の値を作ればよいことが分かります。ここで `Sample` のような型はパースする全てのオプションと引数を含む型である必要があります。
+
+```haskell
+import Options.Applicative
+
+data Sample = Sample
+  { hello      :: String
+  , quiet      :: Bool
+  , enthusiasm :: Int }
+
+sample :: Parser Sample
+sample = Sample
+      <$> undefined
+      <*> undefined
+      <*> undefined
+```
+
+`Sample` 型のそれぞれのフィールドに対応するパーサーをアプリカティブに組み立てています。この書き方はモナドなパーサーライブラリを使っているときでも出てきますが、 optparse-applicative はモナドではないので、全てをこう書く必要があります（ただし `Alternative` 型クラスによる分岐もある）。
+
+ここまでは optparse-applicative に特有の関数は出てきませんでしたが、ここから出てきます。
+
+```haskell
+import Options.Applicative
+
+data Sample = Sample
+  { hello      :: String
+  , quiet      :: Bool
+  , enthusiasm :: Int }
+
+sample :: Parser Sample
+sample = Sample
+      <$> strOption
+          undefined
+      <*> switch
+          undefined
+      <*> option auto
+          undefined
+```
+
+三つの関数 `strOption`, `switch`, `option auto` が出てきました。これらは README の中で `Regular options` という節の中で三つ一緒に紹介されています。これらの詳しいことは後で紹介します。
+
+```haskell
+import Options.Applicative
+
+data Sample = Sample
+  { hello      :: String
+  , quiet      :: Bool
+  , enthusiasm :: Int }
+
+sample :: Parser Sample
+sample = Sample
+      <$> strOption
+          ( long "hello"
+         <> metavar "TARGET"
+         <> help "Target for the greeting" )
+      <*> switch
+          ( long "quiet"
+         <> short 'q'
+         <> help "Whether to be quiet" )
+      <*> option auto
+          ( long "enthusiasm"
+         <> help "How enthusiastically to greet"
+         <> showDefault
+         <> value 1
+         <> metavar "INT" )
+```
+
