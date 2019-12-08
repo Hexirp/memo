@@ -210,7 +210,7 @@ sample = Sample
           undefined
 ```
 
-三つの関数 `strOption`, `switch`, `option auto` が出てきました。これらは README の中で `Regular options` という節の中で三つ一緒に紹介されています。これらの詳しいことは後で紹介します。
+三つの関数 `strOption`, `switch`, `option auto` が出てきました。これらは README の中で `Builders` という節の中で紹介されています。これらの詳しいことは後で紹介します。
 
 ```haskell
 import Options.Applicative
@@ -303,3 +303,44 @@ greet _ = return ()
 ヘルプはこんな感じに表示されると書かれています。ここで、これまでの例で `help` とか `metavar` とか `progDesc` とか `header` とかで設定した文字列がどこに表示されているのか見てみてください。
 
 ### optparse-applicative の builder
+
+オプションや引数などを表す `strOption` や `switch` などの関数は builder と README で総称されています。
+
+```haskell
+outputFile :: Parser String
+outputFile = strOption
+             ( long "output"
+            <> short 'o'
+            <> metavar "FILE"
+            <> value "out.txt"
+            <> help "Write output to FILE" )
+```
+
+`strOption` は オプションの引数として与えられた文字列をそのまま得ることができます。
+
+```haskell
+lineCount :: Parser Int
+lineCount = option auto
+            ( long "lines"
+           <> short 'n'
+           <> metavar "K"
+           <> help "Output the last K lines" )
+```
+
+`option auto` は `Read` 型クラスを利用してオプションの引数を文字列から別の型に変えて得ることができます。
+
+```haskell
+keeping :: Parser Bool
+keeping = switch
+          ( long "keep-tmp-files"
+         <> help "Retain all intermediate temporary files" )
+```
+
+`switch` はフラグを定義できます。例えば、この場合では `--keep-tmp-files` オプションが渡されたとき `True` になり渡されていないとき `False` となります。
+
+```haskell
+usingFile :: Parser String
+usingFile = argument str (metavar "FILE")
+```
+
+`argument` は引数を表します。 optparse-applicative という名前ですが、引数なども取り扱えるというわけですね。
