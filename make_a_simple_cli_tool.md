@@ -419,3 +419,9 @@ module Main where
 皆さんも optparse-applicative を使いましょう。
 
 ちなみに、 optparse-applicative はさっきも言った通り Applicative がベースなのでかなりの自由度があります。なので、 [オレ的 Haskell で CLI を作る方法 2018](https://matsubara0507.github.io/posts/2018-05-10-make-cli-with-haskell-in-2018.html) のように他のライブラリと組み合わせたりできます。 Applicative 様様ですね。
+
+依存関係も軽い（再帰的に依存しているライブラリの量が少ない）ので、気軽にプロジェクトに入れることもできますよ。
+
+## 参考文献
+
+* [optparse-applicative/README.md at master · pcapriotti/optparse-applicative](https://github.com/pcapriotti/optparse-applicative/blob/b861da1e6b021d6abd75ff7e9a4277939aa7a541/README.md)
