@@ -24,7 +24,7 @@ https://hackage.haskell.org/package/optparse-applicative-0.15.1.0
 
 # Haskell で簡単な CLI ツールを作ってみる
 
-Haskell Advent Calendar 2019 の八日目は「 Haskell で簡単な CLI ツールを作ってみる」です。
+[Haskell Advent Calendar 2019](https://qiita.com/advent-calendar/2019/haskell) の八日目は「 Haskell で簡単な CLI ツールを作ってみる」です。
 
 さて、このタイトルで内容は想像しづらいかと思いますが、この記事では内部の実装は既に終わっていると仮定しています。その上で、コマンドの引数はどのようにすれば受け取れるのか、オプションを作るためにはどうすればいいのか、簡単に紹介していく記事になります。
 
