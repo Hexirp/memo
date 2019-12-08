@@ -188,7 +188,7 @@ sample = Sample
       <*> undefined
 ```
 
-`Sample` 型のそれぞれのフィールドに対応するパーサーをアプリカティブに組み立てています。この書き方はモナドなパーサーライブラリを使っているときでも出てきますが、 optparse-applicative はモナドではないので、全てをこう書く必要があります（ただし `Alternative` 型クラスによる分岐もある）。
+`Sample` 型のそれぞれのフィールドに対応するパーサーをアプリカティブに組み立てています。この書き方はモナドなパーサーライブラリを使っているときでも出てきますね。
 
 ここまでは optparse-applicative に特有の関数は出てきませんでしたが、ここから出てきます。
 
@@ -285,7 +285,9 @@ greet (Sample h False n) = putStrLn $ "Hello, " ++ h ++ replicate n '!'
 greet _ = return ()
 ```
 
-こｎ `info` だとか `(<**>)` だとかよく分からない関数が出てくる箇所は、 `--help` をオプションとして渡されたらヘルプを出力できるようにする部分だと説明されています。とにかく、 `sample` をこう包んで、 `progDesc` や `header` などのヘルプに表示するためのメッセージを適切に置き換えれば良さそうです。
+この `info` だとか `(<**>)` だとかよく分からない関数が出てくる箇所は、 `--help` をオプションとして渡されたらヘルプを出力できるようにする部分だと説明されています。とにかく、 `sample` をこう包んで、 `progDesc` や `header` などのヘルプに表示するためのメッセージを適切に置き換えれば良さそうです。
+
+ちなみに調べてみたら `a <**> f` は `flip ($) <$> a <*> f` と等しいそうです。
 
 ```
     hello - a test for optparse-applicative
@@ -412,13 +414,13 @@ module Main where
   fooApp = undefined
 ```
 
-引数を受け取るようなオプションがなかったのでこんなに簡単になったのかもしれません。ここで、調べる必要があったのは `argument auto` の部分だけでした。そこは `option` と同じようにオプションの引数をパースするときの戦略のようなものを受け取る個所でした。 `auto` なら Read 型クラスを使って変換し、 `str` なら文字列のままにする、となっていました。
+引数を受け取るようなオプションがなかったのでこんなに簡単になったのかもしれません。ここで、調べる必要があったのは `argument auto` の部分だけでした。その部分は `option` と同じようにオプションの引数をパースするときの戦略のようなものを受け取る個所でした。 `auto` なら Read 型クラスを使って変換し、 `str` なら文字列のままにする、となっていました。
 
 ## 最後に
 
 皆さんも optparse-applicative を使いましょう。
 
-ちなみに、 optparse-applicative はさっきも言った通り Applicative がベースなのでかなりの自由度があります。なので、 [オレ的 Haskell で CLI を作る方法 2018](https://matsubara0507.github.io/posts/2018-05-10-make-cli-with-haskell-in-2018.html) のように他のライブラリと組み合わせたりできます。 Applicative 様様ですね。
+ちなみに、 optparse-applicative はさっきも言った通り Applicative がベースなのでかなりの自由度があります。なので、 [オレ的 Haskell で CLI を作る方法 2018](https://matsubara0507.github.io/posts/2018-05-10-make-cli-with-haskell-in-2018.html) のように他のライブラリと簡単に組み合わせたりできます。 Applicative 様様ですね。
 
 依存関係も軽い（再帰的に依存しているライブラリの量が少ない）ので、気軽にプロジェクトに入れることもできますよ。
 
