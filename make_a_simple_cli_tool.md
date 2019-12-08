@@ -120,3 +120,42 @@ foo v0.1.0.0 [1,2] 3 --help --version
 optparse-applicative は "optparse" から分かる通りオプションのパーサーを提供しています。が、その後に "applicative" が付いていますね。 Applicative 型クラスを使って何かクールなことをやっていることです。
 
 どんなクールなことなのでしょうか、 README を読んでみます。
+
+```
+data Parser a
+
+instance Functor Parser
+instance Applicative Parser
+instance Alternative Parser
+```
+
+この `Parser` が核となる型だそうです。これはモナドでは**ありません**。
+
+```
+import Options.Applicative
+import Data.Semigroup ((<>))
+
+data Sample = Sample
+  { hello      :: String
+  , quiet      :: Bool
+  , enthusiasm :: Int }
+
+sample :: Parser Sample
+sample = Sample
+      <$> strOption
+          ( long "hello"
+         <> metavar "TARGET"
+         <> help "Target for the greeting" )
+      <*> switch
+          ( long "quiet"
+         <> short 'q'
+         <> help "Whether to be quiet" )
+      <*> option auto
+          ( long "enthusiasm"
+         <> help "How enthusiastically to greet"
+         <> showDefault
+         <> value 1
+         <> metavar "INT" )
+```
+
+これが簡単な例だそうです。いきなりずらっと出されてもわかりませんよね。
