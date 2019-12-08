@@ -345,10 +345,77 @@ usingFile = argument str (metavar "FILE")
 
 `argument` は引数を表します。 optparse-applicative という名前ですが、引数なども取り扱えるというわけですね。
 
+設定にも様々なものがあります。 `long`, `short` はコマンドの名前です。長い名前と短い名前の二つがあり、それぞれ `String` 型と `Char` 型を受け取ります。 `value` はデフォルトの値です。 `metavar` と `help` はヘルプに関するものです。
+
 他にも様々な builder があり、サブコマンドに対応するものもあります。さらに、 optparse-applicative の `Parser` 型は `Alternative` 型クラスのインスタンスも持ちます。これによって、可変長引数や両立しないオプションやその他の様々なことが出来ます。
 
-ですが、ここでは最初に挙げたオプションだけがあればよいだけなので、これぐらいで optparse-applicative の説明を終わりにします。
+これで optparse-applicative の説明を終わりにします。
 
 ### パーサーの実装
 
+optparse-applicative の節で書いたことを使えば簡単です。
 
+```
+module Main where
+
+  import Prelude
+  import Options.Applicative
+
+  -- オプションや引数やフラグなどを全て含む型
+  data Config = Config
+    { version :: String
+    , sequence :: [Integer]
+    , number :: Integer
+    , withVersionInfo :: Bool
+    , withDetail :: Bool
+    , forcing :: Bool
+    }
+
+  -- コマンドの引数をパースする
+  optparse :: Parser Config
+  optparse = Config
+    <$> argument auto (metavar "VERSION")
+    <*> argument auto (metavar "SEQ")
+    <*> argument auto (metavar "NUM")
+    <*> switch
+      ( mempty
+      <> long "version"
+      <> short 'v'
+      <> help "Print the command's version"
+      )
+    <*> switch
+      ( mempty
+      <> long "detail"
+      <> short 'd'
+      <> help "Print details"
+      )
+    <*> switch
+      ( mempty
+      <> long "force"
+      <> short 'f'
+      <> help "Force to use deprecated versions"
+      )
+
+  -- パーサーを実行する
+  main :: IO ()
+  main = do
+      conf <- execParser opts
+      fooApp conf
+    where
+      opts = info (flip ($) <$> optparse <*> helper)
+        ( mempty
+        <> progDesc "Print a result of foo"
+        <> header "foo - a command for foo"
+        )
+
+  fooApp :: Config -> IO ()
+  fooApp = undefined
+```
+
+引数を受け取るようなオプションがなかったのでこんなに簡単になったのかもしれません。ここで、調べる必要があったのは `argument auto` の部分だけでした。そこは `option` と同じようにオプションの引数をパースするときの戦略のようなものを受け取る個所でした。 `auto` なら Read 型クラスを使って変換し、 `str` なら文字列のままにする、となっていました。
+
+## 最後に
+
+皆さんも optparse-applicative を使いましょう。
+
+ちなみに、 optparse-applicative はさっきも言った通り Applicative がベースなのでかなりの自由度があります。なので、 [オレ的 Haskell で CLI を作る方法 2018](https://matsubara0507.github.io/posts/2018-05-10-make-cli-with-haskell-in-2018.html) のように他のライブラリと組み合わせたりできます。 Applicative 様様ですね。
