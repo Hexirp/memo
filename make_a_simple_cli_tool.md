@@ -344,3 +344,11 @@ usingFile = argument str (metavar "FILE")
 ```
 
 `argument` は引数を表します。 optparse-applicative という名前ですが、引数なども取り扱えるというわけですね。
+
+他にも様々な builder があり、サブコマンドに対応するものもあります。さらに、 optparse-applicative の `Parser` 型は `Alternative` 型クラスのインスタンスも持ちます。これによって、可変長引数や両立しないオプションやその他の様々なことが出来ます。
+
+ですが、ここでは最初に挙げたオプションだけがあればよいだけなので、これぐらいで optparse-applicative の説明を終わりにします。
+
+### パーサーの実装
+
+
