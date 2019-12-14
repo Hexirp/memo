@@ -16,23 +16,15 @@ bind :: forall s a b. Reg s a ->. (a ->. Reg s b) ->. Reg s b
 return :: forall s a. a ->. Reg s a
 ```
 
-## Move
-
-```haskell
-type Moveable :: Type -> Constraint
-
-move :: forall s a b. Moveable a => (forall s0. s0 < s => Reg s0 a) ->. (forall s1. s1 < s => a ->. Reg s1 b) ->. Reg s b
-```
-
 ## Val
 
 ```haskell
-type Val :: Type -> Type
+type Val :: LifeTime -> Type -> Type
 
-mkVal :: forall s a. Sized a => a ->. Reg s (Val a)
-dcVal :: forall s a. Val a ->. Reg s a
+mkVal :: forall s a. Sized a => a ->. Reg s (Val s a)
+dcVal :: forall s a. Val s a ->. Reg s a
 
-instance Moveable
+mvVal :: forall s a b. (forall s0. s0 < s => Reg s0 (Val s0 a)) ->. (forall s1. s1 < s => Val s1 a ->. Reg s1 b) -> Reg s b
 ```
 
 Example:
