@@ -21,7 +21,7 @@ return :: forall s a. a ->. Reg s a
 ```haskell
 type Moveable :: Type -> Constraint
 
-move :: forall s a b. Moveable a => (forall s0. s0 < s => Reg s0 a) ->. (forall s1. s1 < s => a ->. Reg s1 b) ->. Reg s b
+move :: forall s p a b. Moveable p => (forall s0. s0 < s => Reg s0 (p s0 a)) ->. (forall s1. s1 < s => p s1 a ->. Reg s1 b) ->. Reg s b
 ```
 
 ## Val
