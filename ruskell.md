@@ -21,18 +21,18 @@ return :: forall s a. a ->. Reg s a
 ```haskell
 type Moveable :: Type -> Constraint
 
-move :: forall s p a b. Moveable p => (forall s0. s0 < s => Reg s0 (p s0 a)) ->. (forall s1. s1 < s => p s1 a ->. Reg s1 b) ->. Reg s b
+move :: forall s a b. Moveable a => (forall s0. s0 < s => Reg s0 a) ->. (forall s1. s1 < s => a ->. Reg s1 b) ->. Reg s b
 ```
 
 ## Val
 
 ```haskell
-type Val :: LifeTime -> Type -> Type
+type Val :: Type -> Type
 
-mkVal :: forall s a. Sized a => a ->. Reg s (Val s a)
-dcVal :: forall s a. Val s a ->. Reg s a
+mkVal :: forall s a. Sized a => a ->. Reg s (Val a)
+dcVal :: forall s a. Val a ->. Reg s a
 
-instance Moveable (Val s a)
+instance Moveable
 ```
 
 Example:
@@ -41,7 +41,5 @@ Example:
 f :: Int ->. Int
 
 main :: forall s. Reg s Int
-main = move @s @Int @Int main0 main1
-
-main0 :: forall s. Reg s (Val s Int
-main0 = mkVal @s @Int 0
+main = mkVal 0 `bind` \v -> dcVal v `bind \n -> f n
+```
