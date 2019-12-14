@@ -63,5 +63,47 @@ func a_copyable a = useCopyable @a @(Duple a a) a_copyable a (\x -> mkDuple @a @
 ```haskell
 type Brw :: LifeTime -> Type -> Type
 
-useBrw :: forall s a b r. Val s a ->. (forall s'. s' < s => Brw s' a -> Reg s' b) -> (Val s a ->. b ->. Reg s r) -> Reg s r
+useBrw :: forall s a b r. Val s a ->. (forall s'. s' < s => Brw s' a ->. Reg s' b) -> (Val s a ->. b ->. Reg s r) -> Reg s r
+
+instance forall s a. Copyable (Brw s a)
+
+mvBrw :: forall s a b. (forall s0. s0 < s => Reg s0 (Brw s0 a)) ->. (forall s1. s1 < s => Brw s1 a ->. Reg s1 b) -> Reg s b
 ```
+
+## MutBrw
+
+```haskell
+type MutBrw :: LifeTime -> Type -> Type
+
+useMutBrw :: forall s a b r. Val s a -> (forall s'. s' <= s => MutBrw s' a ->. Reg s' b) -> (Val s a ->. b ->. Reg s r) -> Reg s r
+
+mvMutBrw :: forall s a b. (forall s0. s0 < s => Reg s0 (MutBrw s0 a)) ->. (forall s1. s1 < s => MutBrw s1 a ->. Reg s1 b) -> Reg s b
+```
+
+## Sized
+
+```haskell
+type Sized :: LifeTime -> Type -> Type
+
+sizeOf :: Sized a -> Word
+
+instance forall s a. Sized a => Sized (Val s a)
+
+instance forall s a. Sized (Brw s a)
+
+instance forall s a. Sized (MutBrw s a)
+```
+
+## Array
+
+```haskell
+type Array :: Type -> Type
+
+mkArray :: forall a. Sized a => a -> Word -> Q Exp
+```
+
+Example:
+
+```haskell
+x :: forall s. Val s (Array Int)
+x = $(mkArray @Int 0 100)
