@@ -8,7 +8,7 @@ ZFC集合論において `0 = 1 -> False` を証明しなさい。ただし Fals
 
 <details>
 <summary>回答</summary>
-0 は空集合なので 0 not\_in 0 である。<br />
+0 は空集合なので 0 not-in 0 である。<br />
 0 = 1 なので 0 in 1 より 0 in 0 である。<br />
-0 not\_in 0 と 0 in 0 なので False である。
+0 not-in 0 と 0 in 0 なので False である。
 </details>
