@@ -193,7 +193,7 @@ tailRecM x f = go id [Left x] where
 [Left x] のところはベースにすべきものが分からなくて一瞬 (f x) にしようかと思った。見つけられたわたしは天才。
 
 
-```
+```haskell
 tailRecM :: forall w. Monoid w => forall a b. a -> (a -> (Either a b, w)) -> (b, w)
 tailRecM x f = go x where
   go :: a -> (b, w)
@@ -339,3 +339,26 @@ tailRecM x f = Cont $ go (f x) where
 ```
 
 だめっぽいな。
+
+```haskell
+tailRecM :: forall r a b. a -> (a -> Cont r (Either a b)) -> Cont r b
+tailRecM x f = Cont (go x) where
+  go :: a -> (b -> r) -> r
+  go x k = runCont (f x) (\xe -> case xe of { Left xa -> go xa k; Right xb -> k xb })
+  go x k = ($ (\xe -> case xe of { Left xa -> go xa k; Right xb -> k xb })) (runCont (f x))
+  go x k = ($ (\xe -> case xe of { Left xa -> go xa k; Right xb -> k xb })) (($ f x) runCont)
+  go x k = ($ either (\xa -> go xa k) (\xb -> k xb)) (($ f x) runCont)
+  go x k = ($ either (\xa -> go xa k) k)) (($ f x) runCont)
+  go x k = ($ ($ k) (either (\xa -> go xa k)))) (($ f x) runCont)
+  go x k = ($ ($ k) (($ \xa -> go xa k) either))) (($ f x) runCont)
+  go x k = ($ ($ k) (($ flip go k) either))) (($ f x) runCont)
+  go x k = ($ ($ k) (($ ($ k) flip go) either))) (($ f x) runCont)
+  go x k = ($ ($ k) (($ ($ k) (($ go) flip)) either))) (($ f x) runCont)
+  go x k = ($ ($ k) (($ ($ k) (($ go) flip)) either))) (($ ($ x) f) runCont)
+  go x k = ($ ($ k) (($ ($ k) (($ go) flip)) either))) $ ($ ($ x) f) $ runCont
+  go x k = (($ ($ k)) $ ($ ($ k) (($ go) flip)) $ either)) $ ($ ($ x) f) $ runCont
+  go x k = go0 x k id where
+    go0 x k k' = ($ ($ k) (($ ($ k) (($ go) flip)) either))) (($ ($ x) f) runCont)
+```
+
+無理やりCPS変換する。当然のようにだめ。
