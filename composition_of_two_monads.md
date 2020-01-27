@@ -1,6 +1,20 @@
-# モナドの合成とその他
+# モナドの合成と色々
 
-モナドの合成と MonadFix と tailRecM について。
+モナドの合成と MonadComm と MonadFix と tailRecM について。
+
+## Monad (Compose m n)
+
+ストリング図を使ってモナドの合成に関する計算をした。やはり `instance (MonadComm m, Monad n, Traversable n) => Monad (Compose m n)` がファイナルアンサー感がある。
+
+* どこかで `t :: Compose n m ~> Compose m n` が必要になる
+* モナド則を満たすためには `t` がある特定の条件を満たさなければならないが、そうなるとそれは `sequenceA @n @m` と一致するというのには一定の説得力がある
+
+こんな型クラスを使う。
+
+```haskell
+class Monad m => MonadComm m where
+  -- f <$> x <*> y === flip f <$> y <*> x
+```
 
 ## MonadFix と tailRecM
 
