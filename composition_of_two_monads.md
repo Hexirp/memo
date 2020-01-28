@@ -362,3 +362,31 @@ tailRecM x f = Cont (go x) where
 ```
 
 無理やりCPS変換する。当然のようにだめ。
+
+```haskell
+tailRecM :: forall r a b. a -> (a -> Cont r (Either a b)) -> Cont r b
+tailRec x f = go x where
+  go :: a -> Cont r b
+  go = join . fmap (either go pure) . f
+
+tailRecM :: forall r a b. a -> (a -> Cont r (Either a b)) -> Cont r b
+tailRec x f = go x id where
+  go :: forall r'. ((a -> Cont r b) -> r') -> r'
+  go k = k (join . fmap (either (go _) pure) . f)
+
+tailRecM :: forall r a b. a -> (a -> Cont r (Either a b)) -> Cont r b
+tailRec x f = go x id where
+  f' :: (a -> Cont r b) -> a -> Cont r b
+  f' g = join . fmap (either g pure) . f
+  go :: forall r'. ((a -> Cont r b) -> r') -> r'
+  go k = k (f' (go _))
+
+tailRecM :: forall r a b. a -> (a -> Cont r (Either a b)) -> Cont r b
+tailRec x f = go x id where
+  f' :: (a -> Cont r b) -> a -> Cont r b
+  f' g = join . fmap (either g pure) . f
+  go :: forall r'. ((a -> Cont r b) -> r') -> r'
+  go k = go (k . f')
+```
+
+無理やり継続にして末尾再帰にした。できたけど、無理やりすぎる。
