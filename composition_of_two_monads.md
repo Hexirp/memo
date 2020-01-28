@@ -464,3 +464,37 @@ tailRecM x f = Compose $ tailRecM x (fmap sequenceA . getCompose . f)
 ```
 
 これは Kory さんが考えた実装 ( [https://twitter.com/Kory__3/status/1221895873887719425](https://twitter.com/Kory__3/status/1221895873887719425) ) と一致……しない。
+
+```haskell
+tailRecM :: forall m r. MonadRec m => forall a b. a -> (a -> ContT r m (Either a b)) -> ContT r m b
+tailRecM x f = ContT $ go x where
+  go :: a -> (b -> m r) -> m r
+  go x k = runContT (f x) $ \xe -> case xe of
+    Left xa -> go xa k
+    Right xb -> k xb
+
+tailRecM :: forall m r. MonadRec m => forall a b. a -> (a -> ContT r m (Either a b)) -> ContT r m b
+tailRecM x f = ContT $ go x where
+  f' :: (a -> ContT r m b) -> a -> ContT r m b
+  f' g = \x -> ContT $ \k -> runContT (f x) -> \xe -> case xe of
+    Left xa -> runContT (g xa) k
+    Right xb -> k xb
+  go :: forall r'. ((a -> ContT r m b) -> r') -> r'
+  go k = go (k . f')
+```
+
+`ContT` への実装。
+
+あっ、 go が停止しないのに今ようやく気付いた。
+
+```haskell
+tailRecM :: forall m r. MonadRec m => forall a b. a -> (a -> ReaderT r m (Either a b)) -> ReaderT r m b
+tailRecM x f = ReaderT $ \r -> tailRecM x (\x -> runReaderT (f x) r)
+```
+
+やっぱり `ReaderT` は全体的にお行儀が良い。
+
+```haskell
+tailRecM :: forall m w. (MonadRec m, Monoid w) => forall a b. a -> (a -> WriterT w m (Either a b)) -> WriterT w m b
+tailRecM x f = undefined
+```
