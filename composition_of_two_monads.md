@@ -404,3 +404,54 @@ tailRec x f = go x id where
 ```
 
 ミックスしてこうやればちったあましになるか？
+
+### モナド変換子
+
+```haskell
+tailRecM :: forall m. MonadRec m => forall a b. a -> (a -> IdentityT m (Either a b)) -> IdentityT m b
+tailRecM x f = IdentityT $ tailRecM x (runIdentityT . f)
+
+tailRecM :: forall m. MonadRec m => forall a b. a -> (a -> MaybeT m (Either a b)) -> MaybeT m b
+tailRecM x f = go x where
+  go :: a -> MaybeT m b
+  go = join . fmap (either go pure) . f
+  go x = join (fmap (either go pure) (f x))
+  go x = (fmap join . join . fmap sequenceA . runMaybeT . fmap runMaybeT) (fmap (either go pure) (f x))
+```
+
+一段と難しくなった。
+
+```haskell
+tailRecM :: forall m. MonadRec m => forall a b. a -> (a -> MaybeT m (Either a b)) -> MaybeT m b
+tailRecM x f = MaybeT $ tailRecM x $ \y -> flip fmap (runMaybeT $ f y) $ \ye -> undefined
+
+tailRecM :: forall m. MonadRec m => forall a b. a -> (a -> MaybeT m (Either a b)) -> MaybeT m b
+tailRecM x f = MaybeT $ tailRecM x loop where
+  loop :: a -> m (Either a (Maybe b))
+  loop x = fmap trans (runMaybeT $ f x)
+  trans :: Maybe (Either a b) -> Either a (Maybe b)
+  trans me = case me of
+    Nothing -> Right Nothing
+    Just e -> case e of
+      Left ea -> Left ea
+      Right eb -> Right (Just eb)
+```
+
+https://github.com/typelevel/cats/blob/93ebcedd9486b8e512d2e88782c30914fa5c29c8/core/src/main/scala/cats/data/OptionT.scala#L423-L430
+
+またもや別実装を参考にした。
+
+https://github.com/typelevel/cats/blob/93ebcedd9486b8e512d2e88782c30914fa5c29c8/core/src/main/scala/cats/data/OptionT.scala#L17-L18
+
+`fold` がどういう関数か分からなくて悩んだ。初めは `fold :: (Foldable f, Monoid a) => f a -> a` っていう関数だと思っていたけど結局これ。
+
+```haskell
+tailRecM :: forall m. MonadRec m => forall a b. a -> (a -> MaybeT m (Either a b)) -> MaybeT m b
+tailRecM x f = MaybeT $ tailRecM x loop where
+  loop :: a -> m (Either a (Maybe b))
+  loop x = fmap trans (runMaybeT $ f x)
+  trans :: Maybe (Either a b) -> Either a (Maybe b)
+  trans = sequenceA
+```
+
+すなわち、こう。まさか `Maybe :.: m ~> m :.: Maybe` のためにではなく `Maybe :.: Either a ~> Either a :.: Maybe` のために `sequenceA` を使うとは……。
