@@ -390,3 +390,17 @@ tailRec x f = go x id where
 ```
 
 無理やり継続にして末尾再帰にした。できたけど、無理やりすぎる。
+
+```haskell
+tailRecM :: forall r a b. a -> (a -> Cont r (Either a b)) -> Cont r b
+tailRec x f = go x id where
+  f' :: (a -> Cont r b) -> a -> Cont r b
+  f' g = join . fmap (either g pure) . f
+  f' g = \x -> Cont $ \k -> runCont (f x) $ \xe -> case xe of
+    Left xa -> runCont (g xa) k
+    Right xb -> k xb
+  go :: forall r'. ((a -> Cont r b) -> r') -> r'
+  go k = go (k . f')
+```
+
+ミックスしてこうやればちったあましになるか？
