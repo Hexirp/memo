@@ -455,3 +455,12 @@ tailRecM x f = MaybeT $ tailRecM x loop where
 ```
 
 すなわち、こう。まさか `Maybe :.: m ~> m :.: Maybe` のためにではなく `Maybe :.: Either a ~> Either a :.: Maybe` のために `sequenceA` を使うとは……。
+
+そして、ここから、ぽんっと `Compose m n` の実装が出てくる。
+
+```haskell
+tailRecM :: forall m n. (MonadComm m, MonadRec m, Monad n, Traversable n) => forall a b. a -> (a -> Compose m n (Either a b)) -> Compose m n b
+tailRecM x f = Compose $ tailRecM x (fmap sequenceA . getCompose . f)
+```
+
+これは Kory さんが考えた実装 ( [https://twitter.com/Kory__3/status/1221895873887719425](https://twitter.com/Kory__3/status/1221895873887719425) ) と一致……しない。
