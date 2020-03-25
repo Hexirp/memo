@@ -1,0 +1,3 @@
+= HelloMediaWiki =
+
+MediaWiki 記法を使えるのかな？
